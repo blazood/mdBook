@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
-use elasticlunr::Index;
+use elasticlunr::{Index, Language};
 use pulldown_cmark::*;
 
 use crate::book::{Book, BookItem};
@@ -13,7 +13,8 @@ use crate::utils;
 
 /// Creates all files required for search.
 pub fn create_files(search_config: &Search, destination: &Path, book: &Book) -> Result<()> {
-    let mut index = Index::new(&["title", "body", "breadcrumbs"]);
+    // 添加中文的配置
+    let mut index = Index::with_language(Language::Chinese,&["title", "body", "breadcrumbs"]);
     let mut doc_urls = Vec::with_capacity(book.sections.len());
 
     for item in book.iter() {
@@ -28,11 +29,13 @@ pub fn create_files(search_config: &Search, destination: &Path, book: &Book) -> 
 
     if search_config.copy_js {
         utils::fs::write_file(destination, "searchindex.json", index.as_bytes())?;
+        let f = format!("Object.assign(window.search, {});", index);
         utils::fs::write_file(
             destination,
             "searchindex.js",
-            format!("Object.assign(window.search, {});", index).as_bytes(),
+            f.as_bytes(),
         )?;
+        utils::fs::write_file(destination, "zh.js", searcher::ZH)?;
         utils::fs::write_file(destination, "searcher.js", searcher::JS)?;
         utils::fs::write_file(destination, "mark.min.js", searcher::MARK_JS)?;
         utils::fs::write_file(destination, "elasticlunr.min.js", searcher::ELASTICLUNR_JS)?;

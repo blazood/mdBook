@@ -257,6 +257,8 @@ window.search = window.search || {};
         search_options = config.search_options;
         searchbar_outer = config.searchbar_outer;
         doc_urls = config.doc_urls;
+
+        // 添加了语言之后，
         searchindex = elasticlunr.Index.load(config.index);
 
         // Set up events
